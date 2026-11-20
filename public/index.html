@@ -25,7 +25,16 @@
       <h2>Nueva factura</h2>
       <form id="formulario">
         <label>Cliente <select id="cliente" required></select></label>
+        <label for="forma_pago">Forma de pago</label>
+        <select id="forma_pago" name="forma_pago" required>
+          <option value="contado">Contado</option>
+          <option value="credito">Crédito</option>
+        </select>
         <div id="lineas"></div>
+        <p>
+          <strong>Subtotal estimado:</strong>
+          <output id="subtotal-estimado" aria-live="polite">₡0,00</output>
+        </p>
         <div class="acciones">
           <button type="button" id="agregar" class="secundario">Agregar línea</button>
           <button type="submit" id="guardar" disabled>Guardar borrador</button>
@@ -37,13 +46,40 @@
       <h2>Catálogo</h2>
       <div class="tabla">
         <table>
-          <thead><tr><th>Código</th><th>Producto</th><th>Tipo</th><th>Precio base</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Producto</th>
+              <th>Tipo</th>
+              <th>Categoría</th>
+              <th>Precio base</th>
+              <th>Stock</th>
+            </tr>
+        </thead>
           <tbody id="productos"></tbody>
         </table>
       </div>
     </section>
     <section id="historial">
       <h2>Historial</h2>
+      <div class="acciones">
+  <label>
+    Cliente
+    <select id="historial-cliente">
+      <option value="">Todos los clientes</option>
+    </select>
+  </label>
+
+  <label>
+    Estado
+    <select id="historial-estado">
+      <option value="">Todos los estados</option>
+      <option value="borrador">Borrador</option>
+      <option value="emitida">Emitida</option>
+      <option value="rechazada">Rechazada</option>
+    </select>
+  </label>
+</div>
       <p id="estado-historial" role="status"></p>
       <div class="tabla">
         <table>
