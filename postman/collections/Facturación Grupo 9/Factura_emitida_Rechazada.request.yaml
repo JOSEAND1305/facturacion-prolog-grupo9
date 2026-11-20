@@ -1,0 +1,8 @@
+$kind: http-request
+description: ""
+url: http://localhost:3000/api/facturas/9/emitir
+method: POST
+body:
+  type: json
+  content: ""
+order: 7000
