@@ -15,7 +15,7 @@ export function repositorioDemo() {
     clientes: () => clientes,
     facturas: () => Array.from(facturas.values(), ({ lineas, ...factura }) => factura).reverse(),
     factura: id => facturas.get(id),
-    crear({ cliente_id, lineas }) {
+    crear({ cliente_id, forma_pago, lineas }) {
       const cliente = clientes.find(item => item.id === cliente_id);
       const referencias = lineas.map(linea => productos.find(item => item.id === linea.producto_id));
       if (!cliente || referencias.includes(undefined)) {
@@ -24,6 +24,7 @@ export function repositorioDemo() {
       const factura = {
         id: facturas.size + 1,
         cliente_id,
+        forma_pago,
         cliente: cliente.nombre,
         estado: 'borrador',
         creada_en: new Date().toISOString(),

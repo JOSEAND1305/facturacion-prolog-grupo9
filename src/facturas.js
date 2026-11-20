@@ -30,13 +30,14 @@ export function repositorio(pool) {
       `, [id]);
       return rows[0];
     },
-    async crear({ cliente_id, lineas }) {
+    async crear({ cliente_id, forma_pago, lineas }) {
       const db = await pool.connect();
       try {
         await db.query('BEGIN');
         const { rows: [factura] } = await db.query(
-          'INSERT INTO facturas (cliente_id) VALUES ($1) RETURNING id', [cliente_id]
-        );
+        'INSERT INTO facturas (cliente_id, forma_pago) VALUES ($1, $2) RETURNING id',
+        [cliente_id, forma_pago]
+      );
         await db.query(`
           INSERT INTO factura_lineas (factura_id, posicion, producto_id, cantidad)
           SELECT $1, posicion, producto_id, cantidad
