@@ -15,6 +15,8 @@
       <nav aria-label="Secciones">
         <a href="#nueva">Nueva factura</a>
         <a href="#catalogo">Catálogo</a>
+        <a href="#historial">Historial</a>
+        <a href="#reportes">Reportes</a>
       </nav>
     </div>
   </header>
@@ -39,6 +41,32 @@
           <tbody id="productos"></tbody>
         </table>
       </div>
+    </section>
+    <section id="historial">
+      <h2>Historial</h2>
+      <p id="estado-historial" role="status"></p>
+      <div class="tabla">
+        <table>
+          <thead><tr><th>Factura</th><th>Cliente</th><th>Estado</th><th>Total</th></tr></thead>
+          <tbody id="facturas"></tbody>
+        </table>
+      </div>
+      <article id="detalle" hidden>
+        <h3 id="titulo-detalle" tabindex="-1"></h3>
+        <p id="estado-emision" role="status"></p>
+        <div id="contenido-detalle"></div>
+        <button id="emitir" hidden>Emitir factura</button>
+      </article>
+    </section>
+    <section id="reportes">
+      <h2>Reportes</h2>
+      <form id="filtros">
+        <label>Desde <input type="date" name="desde"></label>
+        <label>Hasta <input type="date" name="hasta"></label>
+        <button>Consultar</button>
+      </form>
+      <p id="estado-reportes" role="status"></p>
+      <div id="resultados"></div>
     </section>
   </main>
 </body>
