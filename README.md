@@ -91,7 +91,7 @@ La bitácora del proyecto está en [`BITACORA_IA.md`](BITACORA_IA.md).
 ## Capturas
 
 ### Catálogo de productos
-![Catálogo con precios y stock](docs/capturas/catalogo.png)
+![Catálogo con precios y stock](docs/capturas/catalogo_productos.png)
 
 ### Factura emitida
 ![Factura emitida con subtotal, IVA y total](docs/capturas/factura_emitida.png)
