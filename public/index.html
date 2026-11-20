@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Facturación · Grupo 9</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <header>
+    <div class="contenedor">
+      <p class="marca">Grupo 9</p>
+      <h1>Facturación</h1>
+      <nav aria-label="Secciones">
+        <a href="#nueva">Nueva factura</a>
+        <a href="#catalogo">Catálogo</a>
+      </nav>
+    </div>
+  </header>
+  <main class="contenedor">
+    <section id="nueva">
+      <h2>Nueva factura</h2>
+      <form id="formulario">
+        <label>Cliente <select id="cliente" required></select></label>
+        <div id="lineas"></div>
+        <div class="acciones">
+          <button type="button" id="agregar" class="secundario">Agregar línea</button>
+          <button type="submit" id="guardar" disabled>Guardar borrador</button>
+        </div>
+      </form>
+      <p id="estado-formulario" role="status"></p>
+    </section>
+    <section id="catalogo">
+      <h2>Catálogo</h2>
+      <div class="tabla">
+        <table>
+          <thead><tr><th>Código</th><th>Producto</th><th>Tipo</th><th>Precio base</th></tr></thead>
+          <tbody id="productos"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
