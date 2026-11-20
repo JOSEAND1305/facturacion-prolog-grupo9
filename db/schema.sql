@@ -42,3 +42,19 @@ CREATE TABLE IF NOT EXISTS factura_lineas (
   detalle jsonb,
   PRIMARY KEY (factura_id, posicion)
 );
+
+ALTER TABLE productos
+  ADD COLUMN IF NOT EXISTS categoria text NOT NULL DEFAULT 'general'
+    CHECK (categoria IN ('general', 'medicamento', 'canasta', 'exento')),
+  ADD COLUMN IF NOT EXISTS stock integer NOT NULL DEFAULT 0
+    CHECK (stock >= 0);
+
+ALTER TABLE clientes
+  ADD COLUMN IF NOT EXISTS tipo text NOT NULL DEFAULT 'consumidor_final'
+    CHECK (tipo IN ('contribuyente', 'consumidor_final', 'exonerado')),
+  ADD COLUMN IF NOT EXISTS nivel text NOT NULL DEFAULT 'regular'
+    CHECK (nivel IN ('oro', 'plata', 'regular'));
+
+ALTER TABLE facturas
+  ADD COLUMN IF NOT EXISTS forma_pago text NOT NULL DEFAULT 'contado'
+    CHECK (forma_pago IN ('contado', 'credito'));
