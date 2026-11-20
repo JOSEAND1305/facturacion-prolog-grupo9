@@ -1,0 +1,8 @@
+$kind: http-request
+description: ""
+url: http://localhost:3000/api/reportes?desde=2026-11-30&hasta=2026-11-01
+method: GET
+queryParams:
+  desde: 2026-11-30
+  hasta: 2026-11-01
+order: 5000

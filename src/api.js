@@ -38,7 +38,16 @@ async function leerBorrador(req) {
     throw new ErrorHttp(400, 'FACTURA_INVALIDA',
       'Elegí un cliente y agregá de 1 a 100 líneas con producto y cantidad entera positiva.');
   }
-  return data;
+  const forma_pago = Object.hasOwn(data, 'forma_pago')
+  ? data.forma_pago
+  : 'contado';
+
+if (forma_pago !== 'contado' && forma_pago !== 'credito') {
+  throw new ErrorHttp(400, 'FORMA_PAGO_INVALIDA',
+    'Elegí contado o crédito como forma de pago.');
+}
+
+return { ...data, forma_pago };
 }
 
 export function crearApi(repo, motor = {}) {

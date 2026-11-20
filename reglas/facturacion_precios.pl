@@ -33,6 +33,11 @@ iva_aplicable(TipoCliente, Categoria, Tarifa) :-
     tarifa_iva(Categoria, Tarifa).
 
 calcular_linea(ClienteId, Codigo, Cantidad, Base, IVA) :-
+    detalle_linea(ClienteId, Codigo, Cantidad, Detalle),
+    Base = Detalle.base,
+    IVA = Detalle.iva.
+
+detalle_linea(ClienteId, Codigo, Cantidad, Detalle) :-
     cliente(ClienteId, _, TipoCliente, Nivel),
     precio_item(Codigo, Precio),
     categoria_item(Codigo, Categoria),
@@ -42,5 +47,16 @@ calcular_linea(ClienteId, Codigo, Cantidad, Base, IVA) :-
     Importe is Precio * Cantidad,
     ConDescuentoVolumen is Importe * (100 - DescuentoVolumen) / 100,
     BaseSinRedondear is ConDescuentoVolumen * (100 - DescuentoCliente) / 100,
+    Subtotal is round(Importe),
     Base is round(BaseSinRedondear),
-    IVA is round(BaseSinRedondear * Tarifa / 100).
+    Descuento is Subtotal - Base,
+    IVA is round(BaseSinRedondear * Tarifa / 100),
+    Total is Base + IVA,
+    Detalle = _{
+        precio_unitario: Precio,
+        subtotal: Subtotal,
+        descuento: Descuento,
+        base: Base,
+        iva: IVA,
+        total: Total
+    }.

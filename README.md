@@ -1,55 +1,100 @@
-# Facturación · Grupo 9
+# Sistema de facturación con Prolog · Grupo 9
 
-Entrega de Ricardo para revisión. Incluye la base de datos en PostgreSQL para Neon, los endpoints de catálogo, clientes y borradores de facturas, GitHub Actions para plunit y la interfaz web.
+Proyecto de **Paradigmas de Programación** de la Universidad Fidélitas. El sistema permite crear borradores de facturas, emitirlos con reglas de negocio en Prolog y consultar el historial y los reportes de ventas.
 
-## Probar la interfaz con datos de ejemplo
+## Integrantes
 
-Con Node.js 22 o posterior, ejecutá desde esta carpeta:
+- José Andrés Cruz Pérez
+- Ricardo Ulate Alpizar
 
-```sh
-node src/server.js --demo
-```
+## Cómo funciona
 
-Abrí http://localhost:3000. Elegí un cliente, agregá uno o varios productos, guardá el borrador y abrilo desde Historial. Los borradores de esta modalidad se guardan en memoria hasta detener el servidor.
+La API en Node.js recibe las solicitudes y consulta los datos en PostgreSQL, alojado en Neon. Para emitir una factura, la API envía a SWI-Prolog los datos del cliente, la forma de pago, las líneas y el catálogo.
 
-## Ejecutar con Neon
+Prolog calcula los precios de productos y kits anidados, aplica descuentos e IVA, y verifica el crédito y el stock. Si la factura se emite, la API guarda los totales y el detalle por línea y descuenta el inventario en una sola transacción. Si se rechaza, guarda el motivo y conserva el stock.
 
-1. Instalá las dependencias con `npm ci`.
-2. Copiá `.env.example` a `.env` y configurá `DATABASE_URL` con la cadena de conexión de Neon. Usá una base de desarrollo y conservá la conexión cifrada. Si la URL tiene `sslmode=require`, podés usar `sslmode=verify-full` para verificar el certificado y el nombre del servidor.
-3. Aplicá el esquema con `npm run db:setup`. Para cargar también el catálogo y los clientes de ejemplo, usá `npm run db:setup -- --demo`.
-4. Ejecutá `npm start` y abrí http://localhost:3000.
+## Requisitos
 
-Los datos de ejemplo permiten probar el flujo mientras el grupo prepara el catálogo oficial. Los scripts de preparación se pueden ejecutar de nuevo sin duplicar ese catálogo.
+- Node.js 22 o posterior.
+- SWI-Prolog disponible desde la terminal mediante `swipl`.
+- Una base PostgreSQL en Neon.
+- Postman para ejecutar las peticiones de ejemplo.
 
-## API y coordinación con José Andrés
+## Instalación y ejecución
 
-| Método y ruta | Resultado |
-| --- | --- |
-| GET `/api/productos` | Catálogo |
-| GET `/api/clientes` | Clientes disponibles |
-| GET `/api/facturas` | Historial |
-| GET `/api/facturas/:id` | Factura y líneas ordenadas |
-| POST `/api/facturas` | Crea un borrador con sus líneas y retorna 201 |
-| POST `/api/facturas/:id/emitir` | Punto de integración para la emisión |
-| GET `/api/reportes` | Punto de integración para reportes |
+1. Cloná el repositorio y abrí su carpeta raíz.
+2. Creá un archivo `.env` a partir de `.env.example`. Configurá `DATABASE_URL` con la cadena que proporciona Neon y dejá `PORT=3000` para la API local. Guardá `.env` únicamente en tu equipo.
+3. Desde PowerShell, ejecutá estos comandos en orden:
+
+   ```powershell
+   npm.cmd ci
+   npm.cmd run db:setup -- --demo
+   npm.cmd start
+   ```
+
+`db:setup -- --demo` prepara las tablas y carga los productos y clientes de ejemplo. La API queda disponible en `http://localhost:3000`.
+
+## Endpoints
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| GET | `/api/productos` | Lista el catálogo de productos y kits. |
+| GET | `/api/clientes` | Lista los clientes disponibles. |
+| GET | `/api/facturas` | Lista las facturas y sus estados. |
+| GET | `/api/facturas/{id}` | Consulta una factura con sus líneas y el detalle guardado. |
+| POST | `/api/facturas` | Crea un borrador y devuelve `201`. |
+| POST | `/api/facturas/{id}/emitir` | Evalúa la factura con Prolog y guarda el resultado en Neon. |
+| GET | `/api/reportes` | Consulta ventas, IVA por pagar, unidades vendidas y el artículo más vendido. |
+
+### Crear y emitir una factura
+
+Enviá `POST /api/facturas` con un cuerpo JSON como este. Usá los IDs numéricos de cliente y producto que devuelven los endpoints de catálogo.
 
 ```json
 {
-  "cliente_id": 1,
+  "cliente_id": 2,
+  "forma_pago": "contado",
   "lineas": [
-    { "producto_id": 1, "cantidad": 2 },
-    { "producto_id": 3, "cantidad": 1 }
+    { "producto_id": 1, "cantidad": 10 }
   ]
 }
 ```
 
-La pantalla de detalle ya muestra el estado, los totales, los importes por línea y el mensaje de rechazo que devuelva la integración. Emisión y reportes responden 501 hasta que se conecte el motor. El [contrato propuesto](docs/contrato-prolog.md) describe las respuestas que consume la web.
+La forma de pago acepta `contado` y `credito`. Si se omite, se usa `contado`.
 
-GitHub Actions busca suites `.plt` en `prolog/tests/` en cada PR. Mientras el motor se desarrolla, el workflow muestra un aviso si la carpeta está vacía. Al integrar las pruebas conviene exigir que exista al menos una suite para que una ruta mal configurada falle en CI.
+Tomá el `id` del borrador y enviá `POST /api/facturas/{id}/emitir` con el cuerpo vacío. La respuesta `200` contiene el estado `emitida` o `rechazada`. En caso de rechazo, `error_emision` incluye el motivo. Si la factura ya fue emitida, la API devuelve `409`.
 
-## Organización acordada
+### Consultar reportes
 
-1. Primer PR de Ricardo con Neon, endpoints base y GitHub Actions.
-2. Segundo PR de Ricardo con catálogo, formulario, detalle, historial y pantallas de emisión y reportes.
+Los parámetros `desde` y `hasta` son opcionales, inclusivos y usan el formato `AAAA-MM-DD`. El reporte usa la hora de Costa Rica.
 
-La emisión real, los reportes del motor y la colección Postman quedan a cargo de José Andrés. La validación conjunta con los datos oficiales y el cierre de la versión siguen después de la integración.
+```text
+GET /api/reportes?desde=2026-11-01&hasta=2026-11-30
+```
+
+Las ventas, el IVA y las unidades se calculan con las facturas emitidas. Las rechazadas se muestran en un contador propio.
+
+## Pruebas
+
+El motor de Prolog tiene 17 pruebas automatizadas con `plunit`. Para ejecutarlas desde la raíz:
+
+```powershell
+swipl -q -s reglas/facturacion_tests.pl -g run_tests -t halt
+```
+
+GitHub Actions ejecuta esta suite en los pull requests. Las peticiones de Postman se encuentran en `postman/collections/Facturación Grupo 9/` y apuntan a la API local. Para probar la emisión, creá primero un borrador nuevo y usá su ID.
+
+## Bitácora de IA
+
+La bitácora del proyecto está en [`BITACORA_IA.md`](BITACORA_IA.md).
+
+## Capturas
+
+### Catálogo de productos
+![Catálogo con precios y stock](docs/capturas/catalogo.png)
+
+### Factura emitida
+![Factura emitida con subtotal, IVA y total](docs/capturas/factura_emitida.png)
+
+### Reporte de ventas
+![Reporte de facturación con ventas e IVA](docs/capturas/reporte.png)
