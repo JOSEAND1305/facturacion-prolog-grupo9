@@ -14,15 +14,4 @@ jobs:
       - name: Instalar SWI-Prolog
         run: sudo apt-get update && sudo apt-get install -y swi-prolog-nox
       - name: Ejecutar plunit
-        shell: bash
-        run: |
-          mapfile -d '' -t suites < <(find prolog/tests -type f -name '*.plt' -print0 2>/dev/null)
-          if (( ${#suites[@]} == 0 )); then
-            echo "::notice::Pendiente incorporar las suites .plt en prolog/tests/."
-            exit 0
-          fi
-          args=()
-          for suite in "${suites[@]}"; do
-            args+=(-s "$suite")
-          done
-          swipl -q "${args[@]}" -g 'run_tests' -t halt
+        run: swipl -q -s reglas/facturacion_tests.pl -g run_tests -t halt
