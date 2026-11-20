@@ -45,6 +45,73 @@ export function repositorio(pool) {
       return rows[0];
     },
 
+        async reportes(parametros) {
+      const desde = leerFechaReporte(parametros, 'desde');
+      const hasta = leerFechaReporte(parametros, 'hasta');
+
+      if (desde && hasta && desde > hasta) {
+        throw errorFechasReporte('La fecha inicial debe ser anterior o igual a la final.');
+      }
+
+      const { rows: [reporte] } = await pool.query(`
+        WITH facturas_periodo AS (
+          SELECT
+            f.id,
+            f.estado,
+            f.total,
+            f.iva,
+            (COALESCE(f.emitida_en, f.creada_en)
+              AT TIME ZONE 'America/Costa_Rica')::date AS fecha
+          FROM facturas f
+          WHERE f.estado IN ('emitida', 'rechazada')
+        ),
+        filtradas AS (
+          SELECT *
+          FROM facturas_periodo
+          WHERE ($1::date IS NULL OR fecha >= $1::date)
+            AND ($2::date IS NULL OR fecha <= $2::date)
+        ),
+        emitidas AS (
+          SELECT * FROM filtradas WHERE estado = 'emitida'
+        ),
+        ventas_diarias AS (
+          SELECT fecha, SUM(total) AS valor
+          FROM emitidas
+          GROUP BY fecha
+        ),
+        unidades AS (
+          SELECT p.codigo, p.nombre, SUM(l.cantidad) AS unidades
+          FROM emitidas e
+          JOIN factura_lineas l ON l.factura_id = e.id
+          JOIN productos p ON p.id = l.producto_id
+          GROUP BY p.codigo, p.nombre
+        )
+        SELECT
+          jsonb_build_object(
+            'emitidas', (SELECT COUNT(*) FROM emitidas),
+            'rechazadas', (SELECT COUNT(*) FROM filtradas WHERE estado = 'rechazada'),
+            'total_emitido', (SELECT COALESCE(SUM(total), 0.00)::text FROM emitidas),
+            'iva_por_pagar', (SELECT COALESCE(SUM(iva), 0.00)::text FROM emitidas)
+          ) AS resumen,
+          COALESCE((
+            SELECT jsonb_agg(
+              jsonb_build_object('etiqueta', fecha, 'valor', valor::text)
+              ORDER BY fecha
+            )
+            FROM ventas_diarias
+          ), '[]'::jsonb) AS filas,
+          COALESCE((
+            SELECT jsonb_agg(to_jsonb(u) ORDER BY u.unidades DESC, u.codigo)
+            FROM unidades u
+          ), '[]'::jsonb) AS unidades_vendidas
+      `, [desde, hasta]);
+
+      return {
+        ...reporte,
+        producto_mas_vendido: reporte.unidades_vendidas[0] ?? null
+      };
+    },
+
     async emitir(id) {
       const db = await pool.connect();
 
@@ -145,7 +212,7 @@ export function repositorio(pool) {
               WHERE factura_id = $1 AND posicion = $2
             `, [id, linea.posicion, resultado.detalles[indice]]);
           }
-          
+
           for (const { codigo, cantidad } of resultado.consumos) {
             const { rowCount } = await db.query(`
               UPDATE productos
@@ -215,4 +282,26 @@ function mensajeDeEmision(motivo) {
     return 'No hay stock suficiente para completar la factura.';
   }
   return 'La factura no cumple las reglas de emisión.';
+}
+
+function leerFechaReporte(parametros, nombre) {
+  const valor = parametros.get(nombre);
+  if (valor === null) return null;
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(valor) && !valor.startsWith('0000-')) {
+    const fecha = new Date(`${valor}T00:00:00Z`);
+    if (!Number.isNaN(fecha.getTime()) &&
+        fecha.toISOString().slice(0, 10) === valor) {
+      return valor;
+    }
+  }
+
+  throw errorFechasReporte(`La fecha "${nombre}" debe ser válida y tener formato AAAA-MM-DD.`);
+}
+
+function errorFechasReporte(mensaje) {
+  return Object.assign(new Error(mensaje), {
+    status: 400,
+    codigo: 'FECHAS_INVALIDAS'
+  });
 }

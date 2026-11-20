@@ -1,6 +1,6 @@
 $kind: http-request
 description: ""
-url: http://localhost:3000/api/facturas/7/emitir
+url: http://localhost:3000/api/facturas/9/emitir
 method: POST
 body:
   type: json
@@ -8,7 +8,7 @@ body:
 
     \  \"cliente_id\": 2,\r
 
-    \  \"forma_pago\": \"contado\",\r
+    \  \"forma_pago\": \"crédito\",\r
 
     \  \"lineas\": [\r
 

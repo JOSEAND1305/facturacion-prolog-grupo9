@@ -8,7 +8,8 @@ const repo = demo
   ? (await import('./demo.js')).repositorioDemo()
   : repositorio((await import('./db.js')).crearPool());
 const api = crearApi(repo, demo ? {} : {
-  emitir: id => repo.emitir(id)
+  emitir: id => repo.emitir(id),
+  reportes: parametros => repo.reportes(parametros)
 });
 const archivos = new Map([
   ['/', ['index.html', 'text/html']],
