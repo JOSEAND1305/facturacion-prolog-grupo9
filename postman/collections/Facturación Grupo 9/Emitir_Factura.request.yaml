@@ -1,0 +1,20 @@
+$kind: http-request
+description: ""
+url: http://localhost:3000/api/facturas/7/emitir
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"cliente_id\": 2,\r
+
+    \  \"forma_pago\": \"contado\",\r
+
+    \  \"lineas\": [\r
+
+    \    { \"producto_id\": 1, \"cantidad\": 10 }\r
+
+    \  ]\r
+
+    }"
+order: 4000

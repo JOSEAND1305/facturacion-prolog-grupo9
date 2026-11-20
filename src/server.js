@@ -7,7 +7,9 @@ const demo = process.argv.includes('--demo');
 const repo = demo
   ? (await import('./demo.js')).repositorioDemo()
   : repositorio((await import('./db.js')).crearPool());
-const api = crearApi(repo);
+const api = crearApi(repo, demo ? {} : {
+  emitir: id => repo.emitir(id)
+});
 const archivos = new Map([
   ['/', ['index.html', 'text/html']],
   ['/app.js', ['app.js', 'text/javascript']],
